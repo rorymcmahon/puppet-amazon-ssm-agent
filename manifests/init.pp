@@ -95,6 +95,9 @@ class amazon_ssm_agent (
     }
   }
 
+  # Example source url format: 
+  # https://s3.ap-southeast-2.amazonaws.com/amazon-ssm-ap-southeast-2/latest/debian_amd64/ssm-setup-cli
+
   # Extract the package to the tmp dir and install it
   archive { "${tmp_dir}/amazon-ssm-agent.${pkg_format}":
     ensure  => present,
