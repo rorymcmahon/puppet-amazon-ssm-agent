@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 1.2.0 - 2025-05-01
+### Changed
+- Now pulls OS specific installer scripts from AWS
+- Runs the registration on the installer script
+- Uses a custom fact to determine if insalled already
+- Custom fact includes ssm-cli debug information
+
 ## 1.1.0 - 2022-07-12
 ### Changed
 - Add 127.0.0.1 and localhost to default vales for no-proxy configuration

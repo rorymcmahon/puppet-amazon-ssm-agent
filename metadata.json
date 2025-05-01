@@ -1,35 +1,85 @@
 {
-  "name": "shinesolutions-amazon_ssm_agent",
-  "version": "1.1.1-pre.0",
-  "author": "Shine Solutions (opensource@shinesolutions.com)",
+  "name": "rorymcmahon-amazon_ssm_agent",
+  "version": "1.2.0",
+  "author": "Rory McMahon <rory.mcmahon@vocus.com.au>",
   "summary": "Puppet module for managing Amazon System Manager Agent(ssm agent)",
   "license": "Apache-2.0",
-  "source": "https://github.com/shinesolutions/puppet-amazon-ssm-agent.git",
-  "project_page": "https://github.com/shinesolutions/puppet-amazon-ssm-agent",
-  "issues_url": "https://github.com/shinesolutions/puppet-amazon-ssm-agent/issues",
+  "source": "https://github.com/rorymcmahon/puppet-amazon-ssm-agent.git",
+  "project_page": "https://github.com/rorymcmahon/puppet-amazon-ssm-agent",
+  "issues_url": "https://github.com/rorymcmahon/puppet-amazon-ssm-agent/issues",
   "dependencies": [
-    {
-      "name": "puppet/archive",
-      "version_requirement": "3.1.1"
-    },
-    {
-      "name": "puppetlabs-inifile",
-      "version_requirement": "2.2.0"
-    }
   ],
-  "data_provider": "hiera",
   "operatingsystem_support": [
     {
-      "operatingsystem": "RedHat",
+      "operatingsystem": "CentOS",
       "operatingsystemrelease": [
-        "6.0",
-        "7.0"
+        "6",
+        "7",
+        "8",
+        "9"
       ]
     },
     {
-      "operatingsystem": "Amazon",
+      "operatingsystem": "OracleLinux",
       "operatingsystemrelease": [
-        "2016.03"
+        "7",
+        "8",
+        "9"
+      ]
+    },
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "7",
+        "8",
+        "9"
+      ]
+    },
+    {
+      "operatingsystem": "Scientific",
+      "operatingsystemrelease": [
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "Rocky",
+      "operatingsystemrelease": [
+        "8"
+      ]
+    },
+    {
+      "operatingsystem": "AlmaLinux",
+      "operatingsystemrelease": [
+        "8"
+      ]
+    },
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": [
+        "10",
+        "11",
+        "12"
+      ]
+    },
+    {
+      "operatingsystem": "Ubuntu",
+      "operatingsystemrelease": [
+        "16.04",
+        "18.04",
+        "20.04",
+        "22.04",
+        "24.04"
+      ]
+    },
+    {
+      "operatingsystem": "windows",
+      "operatingsystemrelease": [
+        "2012",
+        "2016",
+        "2019",
+        "2022",
+        "10",
+        "11"
       ]
     }
   ],
@@ -39,7 +89,7 @@
       "version_requirement": ">= 5.0.0 < 8.0.0"
     }
   ],
-  "pdk-version": "1.7.0",
-  "template-url": "file:///opt/puppetlabs/pdk/share/cache/pdk-templates.git",
-  "template-ref": "1.7.0-0-g57412ed"
+  "pdk-version": "3.3.0",
+  "template-url": "pdk-default#3.3.0",
+  "template-ref": "tags/3.3.0-0-g5d17ec1"
 }
