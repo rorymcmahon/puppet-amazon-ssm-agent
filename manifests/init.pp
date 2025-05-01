@@ -80,6 +80,9 @@ class amazon_ssm_agent (
 
   $srv_provider = lookup('amazon_ssm_agent::srv_provider', String, 'first')
 
+  # Registration string
+  $registration = "-register -activation-code ${activation_code} -activation-id ${activation_id} -region ${region}"
+
   case $facts['os']['architecture'] {
     'x86_64','amd64': {
       $architecture = 'amd64'
@@ -96,49 +99,66 @@ class amazon_ssm_agent (
   }
 
   # Example source url format: 
+  # https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/3.0.1479.0/linux_amd64/amazon-ssm-agent.rpm
+  # https://s3.ap-southeast-2.amazonaws.com/amazon-ssm-ap-southeast-2/latest/linux_amd64/ssm-setup-cli
   # https://s3.ap-southeast-2.amazonaws.com/amazon-ssm-ap-southeast-2/latest/debian_amd64/ssm-setup-cli
+  # https://s3.ap-southeast-2.amazonaws.com/amazon-ssm-ap-southeast-2/latest/windows_amd64/ssm-setup-cli.exe
 
-  # Extract the package to the tmp dir and install it
-  archive { "${tmp_dir}/amazon-ssm-agent.${pkg_format}":
-    ensure  => present,
-    extract => false,
-    cleanup => false,
-    source  => "https://amazon-ssm-${region}.s3.amazonaws.com/latest/${flavor}_${architecture}/amazon-ssm-agent.${pkg_format}",
-    creates => "${tmp_dir}/amazon-ssm-agent.${pkg_format}",
-  } -> package { 'amazon-ssm-agent':
-    ensure   => latest,
-    provider => $pkg_provider,
-    source   => "${tmp_dir}/amazon-ssm-agent.${pkg_format}",
+  # Determine the package format based on the OS
+  if $facts['os']['family'] == 'RedHat' and $facts['os']['release']['major'] >= 7 {
+    $filename = 'ssm-setup-cli'
+    $download_url = "https://s3.${region}.amazonaws.com/amazon-ssm-${region}/latest/linux_${architecture}/${filename}"
+    $service_name = 'amazon-ssm-agent'
+  } elsif $facts['os']['family'] == 'RedHat' and $facts['os']['release']['major'] < 7 {
+    $filename = 'amazon-ssm-agent.rpm'
+    $download_url = "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/3.0.1479.0/linux_${architecture}/${filename}"
+    $service_name = 'amazon-ssm-agent'
+  } elsif $facts['os']['family'] == 'Debian' {
+    $filename = 'ssm-setup-cli'
+    $download_url = "https://s3.${region}.amazonaws.com/amazon-ssm-${region}/latest/debian_${architecture}/${filename}"
+    $service_name = 'snap.amazon-ssm-agent.amazon-ssm-agent.service'
+  } elsif $facts['os']['family'] == 'windows' {
+    $filename = 'ssm-setup-cli.exe'
+    $download_url = "https://s3.${region}.amazonaws.com/amazon-ssm-${region}/latest/windows_${architecture}/${filename}"
+    $service_name = 'AmazonSSMAgent'
+  } else {
+    fail("Module not supported on ${facts['os']['family']}")
   }
 
-  if $register {
-    exec { 'register-ssm-agent':
-      command     => "amazon-ssm-agent -register -activation-code ${activation_code} -activation-id ${activation_id} -region ${region}",
-      path        => ['/bin', '/usr/bin'],
-      refreshonly => true,
-      subscribe   => Package['amazon-ssm-agent'],
+  # Check if SSM is installed using custom fact
+  if $facts['ssm_agent']['installed'] {
+    # Remove the installer from the temp dir
+    file { "${tmp_dir}/${filename}":
+      ensure => absent,
+    }
+  } else {
+    # Download the install script or package 
+    file { "${tmp_dir}/${filename}":
+      ensure => file,
+      source => $download_url,
+    }
+    # On legacy RHEL systems install the RPM package
+    if $facts['os']['family'] == 'RedHat' and $facts['os']['release']['major'] < 7 {
+      package { 'amazon-ssm-agent':
+        ensure  => installed,
+        source  => "${tmp_dir}/${filename}",
+        require => File["${tmp_dir}/${filename}"],
+      }
+    } else {
+      # Install the agent using the install script
+      exec { 'install-ssm-agent':
+        command     => "${tmp_dir}/${filename} ${registration}",
+        path        => ['/bin', '/usr/bin'],
+        refreshonly => true,
+        subscribe   => File["${tmp_dir}/${filename}"],
+      }
     }
   }
 
   if $service_ensure {
-    class { '::amazon_ssm_agent::proxy':
-      proxy_url    => $proxy_url,
-      srv_provider => $srv_provider,
-      require      => Package['amazon-ssm-agent'],
+    service { $service_name:
+      ensure => $service_ensure,
+      enable => $service_enable,
     }
-
-    service { 'amazon-ssm-agent':
-      ensure   => $service_ensure,
-      enable   => $service_enable,
-      provider => $srv_provider,
-    }
-
-    Class['::amazon_ssm_agent::proxy'] -> Service['amazon-ssm-agent']
-  }
-
-  # Cleanup the agent package 
-  file { "${tmp_dir}/amazon-ssm-agent.${pkg_format}":
-    ensure  => absent,
-    require => Package['amazon-ssm-agent'],
   }
 }

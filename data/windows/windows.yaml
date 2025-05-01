@@ -1,0 +1,2 @@
+amazon_ssm_agent::flavor: windows 
+amazon_ssm_agent::tmp_dir: C:\Temp
