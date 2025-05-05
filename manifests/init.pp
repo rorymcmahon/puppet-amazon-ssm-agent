@@ -105,11 +105,11 @@ class amazon_ssm_agent (
   # https://s3.ap-southeast-2.amazonaws.com/amazon-ssm-ap-southeast-2/latest/windows_amd64/ssm-setup-cli.exe
 
   # Determine the package format based on the OS
-  if $facts['os']['family'] == 'RedHat' and $facts['os']['release']['major'] >= 7 {
+  if $facts['os']['family'] == 'RedHat' and Integer($facts['os']['release']['major']) >= 7 {
     $filename = 'ssm-setup-cli'
     $download_url = "https://s3.${region}.amazonaws.com/amazon-ssm-${region}/latest/linux_${architecture}/${filename}"
     $service_name = 'amazon-ssm-agent'
-  } elsif $facts['os']['family'] == 'RedHat' and $facts['os']['release']['major'] < 7 {
+  } elsif $facts['os']['family'] == 'RedHat' and Integer($facts['os']['release']['major']) < 7 {
     $filename = 'amazon-ssm-agent.rpm'
     $download_url = "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/3.0.1479.0/linux_${architecture}/${filename}"
     $service_name = 'amazon-ssm-agent'
@@ -136,9 +136,10 @@ class amazon_ssm_agent (
     file { "${tmp_dir}/${filename}":
       ensure => file,
       source => $download_url,
+      mode   => '0755',
     }
     # On legacy RHEL systems install the RPM package
-    if $facts['os']['family'] == 'RedHat' and $facts['os']['release']['major'] < 7 {
+    if $facts['os']['family'] == 'RedHat' and Integer($facts['os']['release']['major']) < 7 {
       package { 'amazon-ssm-agent':
         ensure  => installed,
         source  => "${tmp_dir}/${filename}",
